@@ -1965,7 +1965,10 @@ function maybeUpdateStreak() {
   if (stats.lastPractice !== today) {
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     const newStreak = stats.lastPractice === yesterday ? stats.streak + 1 : 1;
-    if (newStreak > (stats.streak || 0)) earnXP(20, `🔥 Streak`);
+    if (newStreak > (stats.streak || 0)) {
+      earnXP(20, `🔥 Streak`);
+      if (newStreak >= 3) showCelebration(`🔥 ${newStreak} ngày streak! Tiếp tục nhé!`);
+    }
     saveStats({ streak: newStreak, lastPractice: today, quizScore: stats.quizScore });
   }
 }
@@ -4455,6 +4458,132 @@ document.addEventListener('click', e => {
   if (btn) speak(btn.dataset.speak);
 });
 
+/* ══════════════════════════════════════════
+   🎉 ONBOARDING WIZARD
+══════════════════════════════════════════ */
+let _obLevel = null;
+let _obGoal  = 10;
+
+function showOnboarding() {
+  const m = document.getElementById('onboardingModal');
+  if (m) m.style.display = 'flex';
+}
+function closeOnboarding() {
+  const m = document.getElementById('onboardingModal');
+  if (m) m.style.display = 'none';
+  localStorage.setItem('frenchCoachOnboarded', '1');
+  if (_obLevel) {
+    selectedLevel = _obLevel;
+    levelButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.level === _obLevel));
+    renderVocabList();
+  }
+  saveStorage('frenchCoachWordGoal', _obGoal);
+  showCelebration('🎉 Chào mừng bạn đến FrenchDino!');
+}
+function goOnboardStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('onboardStep' + i);
+    if (el) el.style.display = i === n ? '' : 'none';
+  });
+}
+
+document.querySelectorAll('.onboard-level-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.onboard-level-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _obLevel = btn.dataset.level;
+    const next = document.getElementById('onboardNext1');
+    if (next) next.disabled = false;
+  });
+});
+document.getElementById('onboardNext1')?.addEventListener('click', () => goOnboardStep(2));
+document.getElementById('onboardSkip')?.addEventListener('click', closeOnboarding);
+
+document.querySelectorAll('.onboard-goal-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.onboard-goal-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _obGoal = parseInt(btn.dataset.goal);
+  });
+});
+document.getElementById('onboardNext2')?.addEventListener('click', () => goOnboardStep(3));
+
+document.getElementById('onboardNotifBtn')?.addEventListener('click', async () => {
+  const statusEl = document.getElementById('onboardNotifStatus');
+  if (!('Notification' in window)) {
+    if (statusEl) statusEl.textContent = 'Trình duyệt không hỗ trợ thông báo.';
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    if (statusEl) { statusEl.textContent = '✅ Đã bật thông báo!'; statusEl.style.color = '#22c55e'; }
+    scheduleDailyReminder();
+    setTimeout(() => goOnboardStep(4), 1200);
+  } else {
+    if (statusEl) { statusEl.textContent = '⚠️ Bạn có thể bật sau trong trình duyệt.'; statusEl.style.color = '#f59e0b'; }
+    setTimeout(() => goOnboardStep(4), 1500);
+  }
+});
+document.getElementById('onboardFinish')?.addEventListener('click', () => goOnboardStep(4));
+document.getElementById('onboardDone')?.addEventListener('click', closeOnboarding);
+
+/* ── Daily Reminder ──────────────────────── */
+function scheduleDailyReminder() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const next8am = new Date(now);
+  next8am.setDate(now.getHours() >= 8 ? now.getDate() + 1 : now.getDate());
+  next8am.setHours(8, 0, 0, 0);
+  const delay = next8am - now;
+  setTimeout(() => {
+    const stats = readStorage('frenchCoachStats', {});
+    if (stats.lastPractice !== new Date().toDateString()) {
+      new Notification('🦕 FrenchDino nhắc bạn!', {
+        body: 'Hôm nay bạn chưa luyện tiếng Pháp. Chỉ 5 phút thôi! 💪',
+        tag: 'daily-reminder'
+      });
+    }
+    scheduleDailyReminder();
+  }, Math.max(delay, 60000));
+}
+
+/* ── Streak Celebration ───────────────────── */
+function showCelebration(msg) {
+  const el = document.createElement('div');
+  el.className = 'streak-celebrate';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+/* ── PWA Install Prompt ───────────────────── */
+let _deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstall = e;
+  if (!localStorage.getItem('pwaBannerDismissed')) {
+    const b = document.getElementById('pwaInstallBanner');
+    if (b) b.style.display = 'flex';
+  }
+});
+window.addEventListener('appinstalled', () => {
+  const b = document.getElementById('pwaInstallBanner');
+  if (b) b.style.display = 'none';
+});
+document.getElementById('pwaInstallBtn')?.addEventListener('click', async () => {
+  if (!_deferredInstall) return;
+  _deferredInstall.prompt();
+  await _deferredInstall.userChoice;
+  _deferredInstall = null;
+  const b = document.getElementById('pwaInstallBanner');
+  if (b) b.style.display = 'none';
+});
+document.getElementById('pwaDismissBtn')?.addEventListener('click', () => {
+  const b = document.getElementById('pwaInstallBanner');
+  if (b) b.style.display = 'none';
+  localStorage.setItem('pwaBannerDismissed', '1');
+});
+
 function init() {
   loadFavorites();
   loadHistory();
@@ -4491,6 +4620,10 @@ function init() {
   initFirebaseSync();
   updateAuthButtons();
   updatePasswordStrengthUI();
+  setTimeout(() => {
+    if (!localStorage.getItem('frenchCoachOnboarded')) showOnboarding();
+    else if (Notification.permission === 'granted') scheduleDailyReminder();
+  }, 800);
 }
 
 let activeGameCleanup = null;

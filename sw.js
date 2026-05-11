@@ -1,4 +1,4 @@
-const CACHE = 'frenchdino-v1';
+const CACHE = 'frenchdino-v3';
 const ASSETS = [
   './',
   './index.html',

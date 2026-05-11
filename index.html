@@ -907,6 +907,64 @@
     </div>
   </div>
 
+  <!-- Onboarding Wizard -->
+  <div id="onboardingModal" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+    <div class="modal-box onboard-box">
+      <!-- Step 1: Level -->
+      <div id="onboardStep1" class="onboard-step">
+        <div class="onboard-emoji">🦕</div>
+        <h2 class="onboard-title">Chào mừng đến FrenchDino!</h2>
+        <p class="onboard-desc">Học tiếng Pháp theo lộ trình DELF với SRS thông minh, luyện nói &amp; shadowing.</p>
+        <p class="onboard-q">Trình độ hiện tại của bạn?</p>
+        <div class="onboard-levels">
+          <button class="onboard-level-btn" data-level="A1">A1<small>Mới bắt đầu</small></button>
+          <button class="onboard-level-btn" data-level="A2">A2<small>Cơ bản</small></button>
+          <button class="onboard-level-btn" data-level="B1">B1<small>Trung cấp</small></button>
+          <button class="onboard-level-btn" data-level="B2">B2<small>Khá</small></button>
+          <button class="onboard-level-btn" data-level="C1">C1<small>Nâng cao</small></button>
+        </div>
+        <button id="onboardNext1" class="modal-btn-primary" disabled>Tiếp tục →</button>
+        <button id="onboardSkip" class="forgot-link">Bỏ qua</button>
+      </div>
+      <!-- Step 2: Goal -->
+      <div id="onboardStep2" class="onboard-step" style="display:none">
+        <div class="onboard-emoji">🎯</div>
+        <h2 class="onboard-title">Mục tiêu hàng ngày</h2>
+        <p class="onboard-desc">Luyện đều mỗi ngày giúp bạn tiến bộ bền vững. Chọn mức phù hợp!</p>
+        <div class="onboard-goals">
+          <button class="onboard-goal-btn" data-goal="5">5 từ<small>~5 phút</small></button>
+          <button class="onboard-goal-btn active" data-goal="10">10 từ<small>~10 phút</small></button>
+          <button class="onboard-goal-btn" data-goal="20">20 từ<small>~20 phút</small></button>
+          <button class="onboard-goal-btn" data-goal="30">30 từ<small>~30 phút</small></button>
+        </div>
+        <button id="onboardNext2" class="modal-btn-primary">Tiếp tục →</button>
+      </div>
+      <!-- Step 3: Notifications -->
+      <div id="onboardStep3" class="onboard-step" style="display:none">
+        <div class="onboard-emoji">🔔</div>
+        <h2 class="onboard-title">Nhắc nhở hàng ngày</h2>
+        <p class="onboard-desc">Bật thông báo để FrenchDino nhắc bạn luyện tập mỗi ngày — không bỏ streak!</p>
+        <button id="onboardNotifBtn" class="modal-btn-primary">🔔 Bật thông báo</button>
+        <button id="onboardFinish" class="modal-btn-secondary">Bắt đầu học ngay →</button>
+        <p id="onboardNotifStatus" class="onboard-notif-status"></p>
+      </div>
+      <!-- Step 4: Done -->
+      <div id="onboardStep4" class="onboard-step" style="display:none">
+        <div class="onboard-emoji">🎉</div>
+        <h2 class="onboard-title">Sẵn sàng rồi!</h2>
+        <p class="onboard-desc">Lộ trình của bạn đã được thiết lập. Hãy học từ đầu tiên nhé!</p>
+        <button id="onboardDone" class="modal-btn-primary">Bắt đầu học →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install Banner -->
+  <div id="pwaInstallBanner" class="pwa-banner" style="display:none" role="banner">
+    <span class="pwa-banner-text">📱 Cài FrenchDino lên màn hình chính — học offline bất cứ lúc nào!</span>
+    <button id="pwaInstallBtn" class="pill pwa-install-pill">Cài đặt</button>
+    <button id="pwaDismissBtn" class="icon-btn pwa-dismiss-btn" title="Đóng">×</button>
+  </div>
+
   <script src="vocabulary.js"></script>
   <script src="app.js"></script>
 </body>
