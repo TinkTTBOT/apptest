@@ -495,7 +495,55 @@ const practiceTasks = [
   { level:'B2', topic:'Môi trường', prompt:'Biến đổi khí hậu là vấn đề toàn cầu.',    answer:'Le changement climatique est un problème mondial.' },
   { level:'B2', topic:'Xã hội',   prompt:'Bình đẳng giới là quyền cơ bản của con người.', answer:'L\'égalité des sexes est un droit fondamental.' },
   { level:'C1', topic:'Tư duy',   prompt:'Mặc dù vậy, cần có nhiều sắc thái hơn.',    answer:'Néanmoins, il faut plus de nuance.' },
-  { level:'C1', topic:'Tư duy',   prompt:'Lập luận đó thiếu bằng chứng thuyết phục.',  answer:'Cet argument manque de preuves convaincantes.' }
+  { level:'C1', topic:'Tư duy',   prompt:'Lập luận đó thiếu bằng chứng thuyết phục.',  answer:'Cet argument manque de preuves convaincantes.' },
+  // A1 bổ sung
+  { level:'A1', topic:'Giới thiệu', prompt:'Tôi sống ở Hà Nội.', answer:'J\'habite à Hanoï.' },
+  { level:'A1', topic:'Giới thiệu', prompt:'Tôi hai mươi tuổi.', answer:'J\'ai vingt ans.' },
+  { level:'A1', topic:'Giới thiệu', prompt:'Bạn tên gì?', answer:'Comment vous appelez-vous ?' },
+  { level:'A1', topic:'Giao tiếp',  prompt:'Xin lỗi, tôi không hiểu.', answer:'Pardon, je ne comprends pas.' },
+  { level:'A1', topic:'Giao tiếp',  prompt:'Bạn nói được tiếng Anh không?', answer:'Vous parlez anglais ?' },
+  { level:'A1', topic:'Giao tiếp',  prompt:'Hôm nay là thứ mấy?', answer:'Quel jour sommes-nous ?' },
+  { level:'A1', topic:'Học tập',    prompt:'Tôi muốn học tiếng Pháp.', answer:'Je veux apprendre le français.' },
+  { level:'A1', topic:'Thời tiết',  prompt:'Trời hôm nay đẹp quá!', answer:'Il fait beau aujourd\'hui !' },
+  { level:'A1', topic:'Giao tiếp',  prompt:'Tôi không nói được tiếng Pháp nhiều.', answer:'Je ne parle pas beaucoup français.' },
+  { level:'A1', topic:'Mua sắm',   prompt:'Bao nhiêu tiền?', answer:'C\'est combien ?' },
+  { level:'A1', topic:'Thực phẩm', prompt:'Tôi đói bụng.', answer:'J\'ai faim.' },
+  { level:'A1', topic:'Thực phẩm', prompt:'Tôi muốn uống nước.', answer:'Je voudrais de l\'eau.' },
+  // A2 bổ sung
+  { level:'A2', topic:'Giao thông', prompt:'Tôi thường đi làm bằng xe buýt.', answer:'Je prends le bus pour aller au travail.' },
+  { level:'A2', topic:'Du lịch',   prompt:'Tôi đã ở Paris tuần trước.', answer:'J\'étais à Paris la semaine dernière.' },
+  { level:'A2', topic:'Mua sắm',   prompt:'Cửa hàng mở cửa đến mấy giờ?', answer:'Le magasin ferme à quelle heure ?' },
+  { level:'A2', topic:'Du lịch',   prompt:'Tôi bị lạc đường.', answer:'Je suis perdu.' },
+  { level:'A2', topic:'Thực phẩm', prompt:'Làm ơn cho tôi menu.', answer:'Le menu, s\'il vous plaît.' },
+  { level:'A2', topic:'Du lịch',   prompt:'Tôi cần đặt bàn cho hai người.', answer:'Je voudrais réserver une table pour deux personnes.' },
+  { level:'A2', topic:'Giao tiếp', prompt:'Bạn có thể giúp tôi không?', answer:'Pouvez-vous m\'aider ?' },
+  { level:'A2', topic:'Du lịch',   prompt:'Tôi muốn đổi tiền.', answer:'Je voudrais changer de l\'argent.' },
+  { level:'A2', topic:'Công nghệ', prompt:'Có wifi ở đây không?', answer:'Il y a du wifi ici ?' },
+  { level:'A2', topic:'Thời tiết', prompt:'Hôm qua trời rất lạnh.', answer:'Hier, il faisait très froid.' },
+  // B1 bổ sung
+  { level:'B1', topic:'Học tập',  prompt:'Tôi đã học tiếng Pháp được hai năm.', answer:'J\'apprends le français depuis deux ans.' },
+  { level:'B1', topic:'Cảm xúc', prompt:'Mặc dù mệt, tôi vẫn tiếp tục học.', answer:'Bien que fatigué, je continue à étudier.' },
+  { level:'B1', topic:'Điều kiện', prompt:'Nếu tôi có tiền, tôi sẽ đi Pháp.', answer:'Si j\'avais de l\'argent, j\'irais en France.' },
+  { level:'B1', topic:'Công việc', prompt:'Dự án được hoàn thành đúng hạn.', answer:'Le projet a été terminé dans les délais.' },
+  { level:'B1', topic:'Văn hóa',  prompt:'Bạn nghĩ gì về bộ phim đó?', answer:'Qu\'est-ce que tu penses de ce film ?' },
+  { level:'B1', topic:'Sức khỏe', prompt:'Tôi cần được nghỉ ngơi.', answer:'J\'ai besoin de me reposer.' },
+  { level:'B1', topic:'Học tập',  prompt:'Cô ấy đang học để thi chứng chỉ.', answer:'Elle étudie pour passer un examen.' },
+  { level:'B1', topic:'Xã hội',   prompt:'Chúng tôi đã thảo luận về vấn đề này.', answer:'Nous avons discuté de cette question.' },
+  { level:'B1', topic:'Giao tiếp', prompt:'Tôi không đồng ý với quyết định đó.', answer:'Je ne suis pas d\'accord avec cette décision.' },
+  { level:'B1', topic:'Thành phố', prompt:'Thành phố này thay đổi rất nhiều.', answer:'Cette ville a beaucoup changé.' },
+  // B2 bổ sung
+  { level:'B2', topic:'Chính sách', prompt:'Chính sách này có tác động tích cực.', answer:'Cette politique a un impact positif.' },
+  { level:'B2', topic:'Tư duy',    prompt:'Cần phải cân nhắc mọi khía cạnh.', answer:'Il faut prendre en compte tous les aspects.' },
+  { level:'B2', topic:'Giáo dục',  prompt:'Không thể phủ nhận tầm quan trọng của giáo dục.', answer:'On ne peut pas nier l\'importance de l\'éducation.' },
+  { level:'B2', topic:'Xã hội',    prompt:'Theo quan điểm của tôi, đây là giải pháp tốt nhất.', answer:'À mon avis, c\'est la meilleure solution.' },
+  { level:'B2', topic:'Môi trường', prompt:'Cần có sự hợp tác quốc tế để giải quyết vấn đề.', answer:'Il faut une coopération internationale pour résoudre le problème.' },
+  { level:'B2', topic:'Xã hội',    prompt:'Điều này phản ánh một xu hướng xã hội rộng lớn hơn.', answer:'Cela reflète une tendance sociale plus large.' },
+  // C1 bổ sung
+  { level:'C1', topic:'Triết học', prompt:'Hiện tượng này không thể được giải thích đơn giản.', answer:'Ce phénomène ne peut pas être expliqué simplement.' },
+  { level:'C1', topic:'Văn học',   prompt:'Mỗi cuộc khủng hoảng là cơ hội để đổi mới.', answer:'Toute crise est une opportunité de se réinventer.' },
+  { level:'C1', topic:'Tư duy',   prompt:'Phải thừa nhận rằng luận điểm có điểm yếu.', answer:'Force est d\'admettre que l\'argument comporte des failles.' },
+  { level:'C1', topic:'Ngôn ngữ', prompt:'Sự biến đổi ngôn ngữ phản ánh sự thay đổi của xã hội.', answer:'L\'évolution du langage reflète les transformations de la société.' },
+  { level:'C1', topic:'Tư duy',   prompt:'Câu hỏi vẫn còn mở: liệu tiến bộ có đảm bảo hạnh phúc?', answer:'La question reste ouverte : le progrès garantit-il le bonheur ?' }
 ];
 
 const listeningTasks = [
@@ -512,7 +560,22 @@ const listeningTasks = [
   { level:'B1', topic:'Công việc', sentence:'Je cherche un nouvel emploi depuis trois mois.', options:['Tôi tìm kiếm việc làm mới được 3 tháng.','Tôi đã nghỉ việc tuần trước.','Tôi thích công việc hiện tại.','Tôi sẽ đi phỏng vấn ngày mai.'], answer:'Tôi tìm kiếm việc làm mới được 3 tháng.' },
   { level:'B2', topic:'Môi trường', sentence:'Il faut protéger l\'environnement pour les générations futures.', options:['Cần bảo vệ môi trường cho các thế hệ tương lai.','Biến đổi khí hậu là vấn đề toàn cầu.','Năng lượng tái tạo rất quan trọng.','Chúng ta nên tái chế nhiều hơn.'], answer:'Cần bảo vệ môi trường cho các thế hệ tương lai.' },
   { level:'B2', topic:'Quan hệ', sentence:'Malgré les difficultés, ils ont réussi à s\'entendre.', options:['Mặc dù khó khăn, họ đã tìm được tiếng nói chung.','Họ đã chia tay sau nhiều năm.','Cuộc gặp gỡ diễn ra suôn sẻ.','Họ đồng ý với tất cả mọi thứ.'], answer:'Mặc dù khó khăn, họ đã tìm được tiếng nói chung.' },
-  { level:'C1', topic:'Tư duy', sentence:'Il est essentiel de nuancer son argumentation.', options:['Cần thiết phải làm rõ sắc thái trong lập luận.','Tranh luận là điều không cần thiết.','Mọi ý kiến đều có giá trị như nhau.','Sự thuyết phục phụ thuộc vào cảm xúc.'], answer:'Cần thiết phải làm rõ sắc thái trong lập luận.' }
+  { level:'C1', topic:'Tư duy', sentence:'Il est essentiel de nuancer son argumentation.', options:['Cần thiết phải làm rõ sắc thái trong lập luận.','Tranh luận là điều không cần thiết.','Mọi ý kiến đều có giá trị như nhau.','Sự thuyết phục phụ thuộc vào cảm xúc.'], answer:'Cần thiết phải làm rõ sắc thái trong lập luận.' },
+  { level:'A1', topic:'Thực phẩm', sentence:'J\'ai faim. Je voudrais manger.', options:['Tôi đói. Tôi muốn ăn.','Tôi khát nước.','Tôi đang ngủ.','Tôi không thích ăn.'], answer:'Tôi đói. Tôi muốn ăn.' },
+  { level:'A1', topic:'Thời tiết', sentence:'Il pleut dehors.', options:['Trời đang mưa.','Trời nóng.','Trời đẹp.','Trời có gió.'], answer:'Trời đang mưa.' },
+  { level:'A1', topic:'Số đếm', sentence:'J\'ai trois enfants.', options:['Tôi có ba con.','Tôi có hai anh em.','Tôi có một chị gái.','Tôi không có con.'], answer:'Tôi có ba con.' },
+  { level:'A2', topic:'Thực phẩm', sentence:'Je préfère le café au lait au café noir.', options:['Tôi thích cà phê sữa hơn cà phê đen.','Tôi uống cà phê đen mỗi buổi sáng.','Tôi không uống cà phê.','Tôi thích trà hơn cà phê.'], answer:'Tôi thích cà phê sữa hơn cà phê đen.' },
+  { level:'A2', topic:'Chỗ ở', sentence:'Mon appartement est au cinquième étage.', options:['Căn hộ tôi ở tầng năm.','Căn hộ tôi có năm phòng.','Tôi sống ở nhà số năm.','Nhà tôi có năm tầng.'], answer:'Căn hộ tôi ở tầng năm.' },
+  { level:'A2', topic:'Giao thông', sentence:'Je prends le métro tous les jours.', options:['Tôi đi tàu điện ngầm mỗi ngày.','Tôi lái xe mỗi ngày.','Tôi đi bộ đến trường.','Tôi đi xe đạp.'], answer:'Tôi đi tàu điện ngầm mỗi ngày.' },
+  { level:'A2', topic:'Ngân hàng', sentence:'La banque ouvre à neuf heures du matin.', options:['Ngân hàng mở cửa lúc 9 giờ sáng.','Ngân hàng đóng cửa lúc 9 giờ.','Cửa hàng mở cửa vào buổi chiều.','Ngân hàng không làm việc ngày Chủ Nhật.'], answer:'Ngân hàng mở cửa lúc 9 giờ sáng.' },
+  { level:'B1', topic:'Học tập', sentence:'Je cherche un appartement depuis deux mois.', options:['Tôi tìm căn hộ được hai tháng.','Tôi thuê nhà được hai năm.','Tôi mua nhà hai tháng trước.','Tôi đã chuyển nhà hai lần.'], answer:'Tôi tìm căn hộ được hai tháng.' },
+  { level:'B1', topic:'Cảm xúc', sentence:'Même si c\'est difficile, je vais continuer.', options:['Dù khó, tôi sẽ tiếp tục.','Vì khó nên tôi bỏ cuộc.','Tôi nghĩ điều này quá khó.','Tôi cần sự giúp đỡ.'], answer:'Dù khó, tôi sẽ tiếp tục.' },
+  { level:'B1', topic:'Học tập', sentence:'Il faut que tu révises avant l\'examen.', options:['Bạn phải ôn bài trước kỳ thi.','Bạn đã thi xong rồi.','Kỳ thi đã bị hoãn.','Bạn không cần ôn bài.'], answer:'Bạn phải ôn bài trước kỳ thi.' },
+  { level:'B1', topic:'Du lịch', sentence:'Nous voyageons en train plutôt qu\'en avion.', options:['Chúng tôi đi tàu hơn là đi máy bay.','Chúng tôi đặt vé máy bay.','Chúng tôi không thích đi tàu.','Tàu đã bị hủy.'], answer:'Chúng tôi đi tàu hơn là đi máy bay.' },
+  { level:'B2', topic:'Kinh tế', sentence:'L\'économie mondiale est en train de se transformer profondément.', options:['Kinh tế toàn cầu đang biến đổi sâu sắc.','Kinh tế thế giới đang tăng trưởng.','Cuộc khủng hoảng kinh tế đã kết thúc.','Các nước phát triển đang gặp khó khăn.'], answer:'Kinh tế toàn cầu đang biến đổi sâu sắc.' },
+  { level:'B2', topic:'Văn hóa', sentence:'La diversité culturelle est une richesse pour la société.', options:['Đa dạng văn hóa là tài sản của xã hội.','Sự khác biệt văn hóa gây ra xung đột.','Văn hóa đồng nhất làm xã hội ổn định hơn.','Cần bảo tồn một nền văn hóa duy nhất.'], answer:'Đa dạng văn hóa là tài sản của xã hội.' },
+  { level:'C1', topic:'Công nghệ', sentence:'L\'usage excessif des réseaux sociaux peut engendrer des troubles anxieux.', options:['Dùng mạng xã hội quá nhiều có thể gây lo âu.','Mạng xã hội giúp giảm căng thẳng.','Các nghiên cứu phủ nhận tác hại của mạng xã hội.','Không có liên hệ giữa mạng xã hội và sức khỏe.'], answer:'Dùng mạng xã hội quá nhiều có thể gây lo âu.' },
+  { level:'C1', topic:'Môi trường', sentence:'Il est impératif de repenser nos modes de consommation.', options:['Cần thiết phải xem xét lại cách tiêu dùng của chúng ta.','Tiêu dùng bền vững là không thể thực hiện.','Nền kinh tế phụ thuộc vào tiêu dùng nhiều.','Giảm tiêu thụ sẽ gây ra suy thoái kinh tế.'], answer:'Cần thiết phải xem xét lại cách tiêu dùng của chúng ta.' }
 ];
 
 const speakingTasks = [
@@ -528,7 +591,24 @@ const speakingTasks = [
   { level:'B2', topic:'Thành phố', prompt:'Aujourd\'hui, je vais au marché.',           expected:'Aujourd\'hui, je vais au marché.' },
   { level:'B2', topic:'Môi trường', prompt:'Il faut protéger l\'environnement.',        expected:'Il faut protéger l\'environnement.' },
   { level:'B2', topic:'Lập luận',  prompt:'Cependant, il faut plus de nuance.',         expected:'Cependant, il faut plus de nuance.' },
-  { level:'C1', topic:'Tư duy',   prompt:'Il est essentiel de bien argumenter.',        expected:'Il est essentiel de bien argumenter.' }
+  { level:'C1', topic:'Tư duy',   prompt:'Il est essentiel de bien argumenter.',        expected:'Il est essentiel de bien argumenter.' },
+  { level:'A1', topic:'Giới thiệu', prompt:'Je m\'appelle Lan. J\'ai dix-neuf ans.', expected:'Je m\'appelle Lan. J\'ai dix-neuf ans.' },
+  { level:'A1', topic:'Giới thiệu', prompt:'J\'habite au Vietnam.', expected:'J\'habite au Vietnam.' },
+  { level:'A1', topic:'Thực phẩm', prompt:'J\'ai faim. Je voudrais manger.', expected:'J\'ai faim. Je voudrais manger.' },
+  { level:'A1', topic:'Chào hỏi',  prompt:'Bonne nuit ! À demain !', expected:'Bonne nuit ! À demain !' },
+  { level:'A1', topic:'Giao tiếp',  prompt:'Je ne comprends pas. Pouvez-vous répéter ?', expected:'Je ne comprends pas. Pouvez-vous répéter ?' },
+  { level:'A2', topic:'Mua sắm',   prompt:'Hier, j\'ai fait mes courses au supermarché.', expected:'Hier, j\'ai fait mes courses au supermarché.' },
+  { level:'A2', topic:'Thời tiết', prompt:'Le temps est très agréable aujourd\'hui.', expected:'Le temps est très agréable aujourd\'hui.' },
+  { level:'A2', topic:'Giao thông', prompt:'Je voyage souvent en bus ou en métro.', expected:'Je voyage souvent en bus ou en métro.' },
+  { level:'A2', topic:'Du lịch',   prompt:'Je voudrais réserver une chambre pour deux nuits.', expected:'Je voudrais réserver une chambre pour deux nuits.' },
+  { level:'A2', topic:'Thời tiết', prompt:'Il fait froid en hiver à Paris.', expected:'Il fait froid en hiver à Paris.' },
+  { level:'B1', topic:'Sức khỏe', prompt:'Je pense que le sport est essentiel pour la santé.', expected:'Je pense que le sport est essentiel pour la santé.' },
+  { level:'B1', topic:'Văn hóa',  prompt:'Depuis que j\'apprends le français, je regarde des films français.', expected:'Depuis que j\'apprends le français, je regarde des films français.' },
+  { level:'B1', topic:'Xã hội',   prompt:'En France, on mange souvent ensemble en famille.', expected:'En France, on mange souvent ensemble en famille.' },
+  { level:'B1', topic:'Môi trường', prompt:'Il faudrait réduire notre consommation d\'énergie.', expected:'Il faudrait réduire notre consommation d\'énergie.' },
+  { level:'B2', topic:'Kinh tế',   prompt:'La mondialisation a des avantages et des inconvénients.', expected:'La mondialisation a des avantages et des inconvénients.' },
+  { level:'B2', topic:'Giáo dục',  prompt:'Je suis convaincu que l\'éducation est la clé du développement.', expected:'Je suis convaincu que l\'éducation est la clé du développement.' },
+  { level:'C1', topic:'Tư duy',   prompt:'Il serait naïve de penser qu\'il existe une solution simple.', expected:'Il serait naïve de penser qu\'il existe une solution simple.' }
 ];
 
 const pronunciationTasks = [
@@ -547,7 +627,21 @@ const pronunciationTasks = [
   { level:'B2', topic:'Cảm xúc',   phrase:'Je suis vraiment désolé pour ce malentendu.' },
   { level:'B2', topic:'Công việc',  phrase:'La réunion est reportée à demain matin à neuf heures.' },
   { level:'B2', topic:'Môi trường', phrase:'Il faut agir maintenant pour protéger notre planète.' },
-  { level:'C1', topic:'Tư duy',    phrase:'Il est essentiel de nuancer son point de vue dans toute argumentation.' }
+  { level:'C1', topic:'Tư duy',    phrase:'Il est essentiel de nuancer son point de vue dans toute argumentation.' },
+  { level:'A1', topic:'Số đếm',     phrase:'Un, deux, trois, quatre, cinq, six, sept.' },
+  { level:'A1', topic:'Chào hỏi',   phrase:'Bonne journée et à bientôt !' },
+  { level:'A1', topic:'Giao tiếp',  phrase:'Je ne comprends pas. Pouvez-vous répéter, s\'il vous plaît ?' },
+  { level:'A2', topic:'Mua sắm',    phrase:'Aujourd\'hui, je suis allé faire du shopping en ville.' },
+  { level:'A2', topic:'Thời tiết',  phrase:'Il fait très beau ce week-end, allons nous promener !' },
+  { level:'A2', topic:'Giao tiếp',  phrase:'Vous pouvez m\'aider, s\'il vous plaît ?' },
+  { level:'A2', topic:'Chỗ ở',    phrase:'Quelle est votre adresse exacte, s\'il vous plaît ?' },
+  { level:'B1', topic:'Công việc',  phrase:'Je suis très heureux de travailler dans cette entreprise depuis six mois.' },
+  { level:'B1', topic:'Học tập',  phrase:'Depuis combien de temps apprenez-vous le français ?' },
+  { level:'B1', topic:'Giao tiếp',  phrase:'Si vous avez le temps, venez nous rendre visite ce week-end.' },
+  { level:'B1', topic:'Văn hóa',  phrase:'La France est connue pour sa gastronomie, sa mode et sa culture.' },
+  { level:'B2', topic:'Xã hội',   phrase:'Bien que la situation économique soit complexe, des solutions innovantes existent.' },
+  { level:'B2', topic:'Công nghệ', phrase:'La technologie numérique transforme profondément notre quotidien et nos relations sociales.' },
+  { level:'C1', topic:'Ngôn ngữ', phrase:'Il est indéniable que la langue que nous parlons façonne notre vision du monde.' }
 ];
 
 const sentenceTasks = [
@@ -570,6 +664,25 @@ const sentenceTasks = [
   { level:'B2', topic:'Lập luận',   vi:'Tuy nhiên, tôi có ý kiến khác.',                 fr:'Cependant, j\'ai une opinion différente.' },
   { level:'B2', topic:'Công việc',  vi:'Cuộc họp bị hoãn đến ngày mai.',                 fr:'La réunion est reportée à demain.' },
   { level:'C1', topic:'Tư duy',     vi:'Điều quan trọng là phải lập luận có chiều sâu.', fr:'Il est essentiel de bien argumenter.' },
+  { level:'A1', topic:'Giới thiệu', vi:'Tôi sống ở Việt Nam.', fr:'J\'habite au Vietnam.' },
+  { level:'A1', topic:'Thời tiết',  vi:'Hôm nay trời đẹp.', fr:'Il fait beau aujourd\'hui.' },
+  { level:'A1', topic:'Học tập',    vi:'Tôi đang đọc sách.', fr:'Je lis un livre.' },
+  { level:'A1', topic:'Giới thiệu', vi:'Bạn bao nhiêu tuổi?', fr:'Quel âge as-tu ?' },
+  { level:'A1', topic:'Âm nhạc',    vi:'Tôi thích âm nhạc.', fr:'J\'aime la musique.' },
+  { level:'A2', topic:'Học tập',    vi:'Tôi đã học tiếng Pháp năm ngoái.', fr:'J\'ai étudié le français l\'année dernière.' },
+  { level:'A2', topic:'Giao tiếp',   vi:'Bạn có muốn uống gì không?', fr:'Voulez-vous boire quelque chose ?' },
+  { level:'A2', topic:'Thói quen',    vi:'Tôi thường dậy lúc 7 giờ.', fr:'Je me lève généralement à sept heures.' },
+  { level:'A2', topic:'Công việc',   vi:'Anh ấy làm việc tại ngân hàng.', fr:'Il travaille dans une banque.' },
+  { level:'A2', topic:'Giải trí',    vi:'Cô ấy thích đọc sách hơn xem phim.', fr:'Elle préfère lire plutôt que regarder des films.' },
+  { level:'B1', topic:'Học tiếng P.',vi:'Kể từ khi tôi học tiếng Pháp, tôi hiểu văn hóa Pháp hơn.', fr:'Depuis que j\'apprends le français, je comprends mieux la culture française.' },
+  { level:'B1', topic:'Du lịch',     vi:'Tôi ước mình có thể đi du lịch nhiều hơn.', fr:'J\'aimerais pouvoir voyager davantage.' },
+  { level:'B1', topic:'Thời tiết',  vi:'Dù thời tiết xấu, chúng tôi vẫn đi dã ngoại.', fr:'Malgré le mauvais temps, nous sommes quand même allés pique-niquer.' },
+  { level:'B2', topic:'Công nghệ',  vi:'Công nghệ hiện đại đã thay đổi cách chúng ta giao tiếp.', fr:'La technologie moderne a changé notre façon de communiquer.' },
+  { level:'B2', topic:'Xã hội',     vi:'Cần có sự cân bằng giữa công việc và cuộc sống cá nhân.', fr:'Il faut trouver un équilibre entre vie professionnelle et vie personnelle.' },
+  { level:'B2', topic:'Xã hội',     vi:'Bất bình đẳng xã hội là vấn đề cốt lõi của thời đại.', fr:'L\'inégalité sociale est le problème central de notre époque.' },
+  { level:'C1', topic:'Triết học',  vi:'Chỉ qua thử thách, con người mới thực sự trưởng thành.', fr:'C\'est à travers les épreuves que l\'on mûrit véritablement.' },
+  { level:'C1', topic:'Ngôn ngữ',  vi:'Mỗi ngôn ngữ là một cách nhìn khác về thế giới.', fr:'Chaque langue est une façon différente de voir le monde.' },
+  { level:'C1', topic:'Tư do',      vi:'Sự tự do ngôn luận phải đi kèm với trách nhiệm.', fr:'La liberté d\'expression doit s\'accompagner de responsabilité.' }
 ];
 
 const dialogueTasks = [
@@ -1083,6 +1196,11 @@ function renderEvaluation(period) {
     // Streak calendar — last 28 days
     const allS = loadDailyStats();
     const calDays = [];
+    const firstCalDate = new Date(); firstCalDate.setDate(firstCalDate.getDate() - 27);
+    const startPad = firstCalDate.getDay(); // 0=Sun(CN), 1=Mon(T2)...
+    for (let p = 0; p < startPad; p++) {
+      calDays.push('<div class="sc-day sc-pad"></div>');
+    }
     for (let i = 27; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
