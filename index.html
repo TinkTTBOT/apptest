@@ -613,8 +613,13 @@
         <!-- Giọng đọc -->
         <article class="card settings-group">
           <h4 class="settings-group-title">Giọng đọc tiếng Pháp</h4>
-          <p class="settings-desc">Chọn giọng đọc dùng cho nút "Nghe" (từ vựng, phát âm, hội thoại).</p>
+          <p class="settings-desc">Chọn giọng đọc dùng cho nút "Nghe" (từ vựng, phát âm, hội thoại). Lọc theo giới tính để ưu tiên giọng nam hoặc nữ (trình duyệt có thể chỉ có một số giọng).</p>
           <div class="voice-settings">
+            <select id="voiceGenderSelect" aria-label="Lọc giọng theo giới tính">
+              <option value="any">Tất cả giọng</option>
+              <option value="female">Ưu tiên nữ</option>
+              <option value="male">Ưu tiên nam</option>
+            </select>
             <select id="voiceSelect" aria-label="Chọn giọng đọc"></select>
             <button id="testVoice" class="pill secondary" type="button">▶ Nghe thử</button>
           </div>
@@ -966,6 +971,9 @@
   </div>
 
   <script src="vocabulary.js"></script>
+  <script src="vocabulary-extra.js"></script>
+  <script src="practice-tasks-more.js"></script>
+  <script src="dialogue-tasks-more.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

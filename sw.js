@@ -1,10 +1,13 @@
-const CACHE = 'frenchdino-v3';
+const CACHE = 'frenchdino-v4';
 const ASSETS = [
   './',
   './index.html',
   './app.js',
   './styles.css',
-  './vocabulary.js'
+  './vocabulary.js',
+  './vocabulary-extra.js',
+  './practice-tasks-more.js',
+  './dialogue-tasks-more.js'
 ];
 
 self.addEventListener('install', e => {

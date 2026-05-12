@@ -76,13 +76,16 @@ const practiceLevelFilter = document.getElementById('practiceLevelFilter');
 const practiceTopicFilter = document.getElementById('practiceTopicFilter');
 const practiceOrderFilter = document.getElementById('practiceOrderFilter');
 const voiceSelectEl = document.getElementById('voiceSelect');
+const voiceGenderSelectEl = document.getElementById('voiceGenderSelect');
 const testVoiceBtn = document.getElementById('testVoice');
 const practiceMeta = document.getElementById('practiceMeta');
 const speakingMeta = document.getElementById('speakingMeta');
 const pronunciationMeta = document.getElementById('pronunciationMeta');
 const dialogueMeta = document.getElementById('dialogueMeta');
 
-const vocabularies = (typeof vocabularyData !== 'undefined' && vocabularyData.length) ? vocabularyData : [
+const vocabularies = (() => {
+  const _mergeVocabExtra = base => (typeof vocabularyExtra !== 'undefined' && vocabularyExtra.length) ? base.concat(vocabularyExtra) : base;
+  const _base = (typeof vocabularyData !== 'undefined' && vocabularyData.length) ? vocabularyData : [
   // ── Chào hỏi ──────────────────────────────────────────────────
   { level:'A1', topic:'Chào hỏi', word:'Bonjour',       meaning:'Xin chào',         example:'Bonjour, comment ça va ?', difficulty:1 },
   { level:'A1', topic:'Chào hỏi', word:'Merci',         meaning:'Cảm ơn',           example:'Merci beaucoup !', difficulty:1 },
@@ -435,7 +438,9 @@ const vocabularies = (typeof vocabularyData !== 'undefined' && vocabularyData.le
   { level:'B1', topic:'Tính từ', word:'Patient(e)',       meaning:'Kiên nhẫn',       example:'Il faut être patient pour apprendre une langue.', difficulty:3 },
   { level:'B1', topic:'Tính từ', word:'Impatient(e)',     meaning:'Nóng nảy / thiếu kiên nhẫn', example:'Il est impatient d\'avoir les résultats.', difficulty:3 },
   { level:'B1', topic:'Tính từ', word:'Prudent(e)',       meaning:'Cẩn thận',        example:'Sois prudent sur la route.', difficulty:3 },
-];
+  ];
+  return _mergeVocabExtra(_base);
+})();
 
 const grammarLessons = [
   { level:'A1', title:'Mạo từ (Articles)', text:'Mạo từ xác định: le (giống đực), la (giống cái), les (số nhiều). Mạo từ bất định: un, une, des. Ví dụ: le chat (con mèo), une pomme (một quả táo), des livres (những cuốn sách).' },
@@ -544,7 +549,7 @@ const practiceTasks = [
   { level:'C1', topic:'Tư duy',   prompt:'Phải thừa nhận rằng luận điểm có điểm yếu.', answer:'Force est d\'admettre que l\'argument comporte des failles.' },
   { level:'C1', topic:'Ngôn ngữ', prompt:'Sự biến đổi ngôn ngữ phản ánh sự thay đổi của xã hội.', answer:'L\'évolution du langage reflète les transformations de la société.' },
   { level:'C1', topic:'Tư duy',   prompt:'Câu hỏi vẫn còn mở: liệu tiến bộ có đảm bảo hạnh phúc?', answer:'La question reste ouverte : le progrès garantit-il le bonheur ?' }
-];
+].concat(typeof practiceTasksMore !== 'undefined' ? practiceTasksMore : []);
 
 const listeningTasks = [
   { level:'A1', topic:'Giới thiệu', sentence:'Je m\'appelle Marie.', options:['Tôi tên là Marie.','Tôi sống ở Paris.','Tôi thích ăn.','Tôi đang học.'], answer:'Tôi tên là Marie.' },
@@ -859,7 +864,7 @@ const dialogueTasks = [
       { speaker: 'A', fr: 'Il faut donc se former aux nouvelles technologies.', vi: 'Vậy thì cần phải học các công nghệ mới.' }
     ]
   }
-];
+].concat(typeof dialogueTasksMore !== 'undefined' ? dialogueTasksMore : []);
 
 const quizQuestions = [
   {
@@ -911,12 +916,6 @@ let currentDailyChallenge = 0;
 let onlyFavorites = false;
 
 let activeFlashcard = 0;
-let activePractice = 0;
-let activeListening = 0;
-let activeSpeaking = 0;
-let activePronunciation = 0;
-let activeDialogue = 0;
-let activeSentence = 0;
 let wordMode = 'sentence';
 let sentenceBankWords = [];
 let sentenceAnswerWords = [];
@@ -924,6 +923,80 @@ let matchPairs = [];
 let matchSelected = null;
 let matchSolved = 0;
 let quizState = { current: 0, score: 0, total: 0, active: false };
+
+function shufflePermutation(n) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const practiceShuffle = {
+  translate: { order: [], pos: 0, sig: '' },
+  speaking: { order: [], pos: 0, sig: '' },
+  pronunciation: { order: [], pos: 0, sig: '' },
+  dialogue: { order: [], pos: 0, sig: '' },
+  listening: { order: [], pos: 0, sig: '' },
+  sentenceLearn: { order: [], pos: 0, sig: '' },
+  wordBuilder: { order: [], pos: 0, sig: '' }
+};
+
+function practiceFilterSignature() {
+  return `${practiceFilterLevel}|${practiceFilterTopic}|${practiceFilterOrder}`;
+}
+
+function ensurePracticeShuffle(key, taskCount, sig) {
+  const st = practiceShuffle[key];
+  if (!taskCount) {
+    st.order = [];
+    return;
+  }
+  if (st.order.length !== taskCount || st.sig !== sig) {
+    st.order = shufflePermutation(taskCount);
+    st.pos = 0;
+    st.sig = sig;
+  }
+}
+
+function advancePracticeShuffle(key, taskCount) {
+  const sig = practiceFilterSignature();
+  ensurePracticeShuffle(key, taskCount, sig);
+  const st = practiceShuffle[key];
+  if (!taskCount || !st.order.length) return;
+  st.pos = (st.pos + 1) % taskCount;
+  if (st.pos === 0) {
+    st.order = shufflePermutation(taskCount);
+  }
+}
+
+function currentShuffledTask(tasks, key) {
+  const sig = practiceFilterSignature();
+  ensurePracticeShuffle(key, tasks.length, sig);
+  const st = practiceShuffle[key];
+  if (!tasks.length) return null;
+  return tasks[st.order[st.pos]];
+}
+
+function resetPracticeShuffleAll() {
+  Object.keys(practiceShuffle).forEach(k => {
+    practiceShuffle[k].order = [];
+    practiceShuffle[k].pos = 0;
+    practiceShuffle[k].sig = '';
+  });
+}
+
+function getFilteredDialogueTasks() {
+  let tasks = dialogueTasks.filter(t => {
+    const matchLevel = practiceFilterLevel === 'all' || t.level === practiceFilterLevel;
+    const matchTopic = practiceFilterTopic === 'all' || t.topic === practiceFilterTopic;
+    return matchLevel && matchTopic;
+  });
+  if (practiceFilterOrder === 'hard') tasks = [...tasks].reverse();
+  return tasks;
+}
+
 let selectedLevel = 'all';
 let selectedTopic = 'all';
 let vocabTopics = ['all', ...new Set(vocabularies.map(item => item.topic))];
@@ -947,6 +1020,7 @@ let practiceFilterLevel = 'all';
 let practiceFilterTopic = 'all';
 let practiceFilterOrder = 'easy';
 let selectedVoice = null;
+let frenchVoiceGender = localStorage.getItem('frenchCoachVoiceGender') || 'any';
 let quizSoundEnabled = true;
 let quizFilterLevel = 'all';
 let quizFilterTopic = 'all';
@@ -1557,8 +1631,14 @@ function completeTodayGoal() {
 
 function renderPractice() {
   const tasks = getFilteredPracticeTasks(practiceTasks);
-  activePractice = activePractice % tasks.length;
-  const task = tasks[activePractice];
+  if (!tasks.length) {
+    practicePrompt.textContent = 'Không có bài cho bộ lọc này.';
+    practiceAnswer.value = '';
+    practiceFeedback.textContent = '';
+    if (practiceMeta) practiceMeta.textContent = '';
+    return;
+  }
+  const task = currentShuffledTask(tasks, 'translate');
   practicePrompt.textContent = task.prompt;
   practiceAnswer.value = '';
   practiceFeedback.textContent = '';
@@ -1567,8 +1647,14 @@ function renderPractice() {
 
 function renderSpeaking() {
   const tasks = getFilteredPracticeTasks(speakingTasks);
-  activeSpeaking = activeSpeaking % tasks.length;
-  const task = tasks[activeSpeaking];
+  if (!tasks.length) {
+    speakingPrompt.textContent = 'Không có bài cho bộ lọc này.';
+    speakingRecognized.textContent = '';
+    speakingFeedback.textContent = '';
+    if (speakingMeta) speakingMeta.textContent = '';
+    return;
+  }
+  const task = currentShuffledTask(tasks, 'speaking');
   speakingPrompt.textContent = task.prompt;
   speakingRecognized.textContent = '';
   speakingFeedback.textContent = '';
@@ -1577,8 +1663,14 @@ function renderSpeaking() {
 
 function renderPronunciation() {
   const tasks = getFilteredPracticeTasks(pronunciationTasks);
-  activePronunciation = activePronunciation % tasks.length;
-  const task = tasks[activePronunciation];
+  if (!tasks.length) {
+    pronunciationPrompt.textContent = 'Không có bài cho bộ lọc này.';
+    pronunciationRecognized.textContent = '';
+    pronunciationFeedback.textContent = '';
+    if (pronunciationMeta) pronunciationMeta.textContent = '';
+    return;
+  }
+  const task = currentShuffledTask(tasks, 'pronunciation');
   pronunciationPrompt.textContent = task.phrase;
   pronunciationRecognized.textContent = '';
   pronunciationFeedback.textContent = '';
@@ -1586,20 +1678,14 @@ function renderPronunciation() {
 }
 
 function renderDialogue() {
-  let tasks = dialogueTasks.filter(t => {
-    const matchLevel = practiceFilterLevel === 'all' || t.level === practiceFilterLevel;
-    const matchTopic = practiceFilterTopic === 'all' || t.topic === practiceFilterTopic;
-    return matchLevel && matchTopic;
-  });
-  if (practiceFilterOrder === 'hard') tasks = [...tasks].reverse();
+  const tasks = getFilteredDialogueTasks();
   if (!tasks.length) {
     dialogueTitle.textContent = 'Không tìm thấy hội thoại';
     if (dialogueMeta) dialogueMeta.textContent = '';
     dialogueText.innerHTML = '<p style="text-align:center;padding:24px 0;color:var(--muted)">Chưa có hội thoại nào cho bộ lọc này.<br>Thử chọn chủ đề khác.</p>';
     return;
   }
-  activeDialogue = activeDialogue % tasks.length;
-  const task = tasks[activeDialogue];
+  const task = currentShuffledTask(tasks, 'dialogue');
   dialogueTitle.textContent = task.title;
   if (dialogueMeta) dialogueMeta.textContent = [task.level, task.topic].filter(Boolean).join(' · ');
   dialogueText.innerHTML = task.lines.map(line => `
@@ -1633,7 +1719,6 @@ function switchPracticeTab(tab) {
 }
 
 /* ── Sentence-based Learning ─────────────── */
-let sentenceIdx = 0;
 let sentencePhase = 'read'; // 'read' | 'quiz'
 let sentenceOptions = [];
 
@@ -1686,14 +1771,24 @@ function getSentencePool() {
   return vocabularies.filter(v => v.example && v.example.trim().length > 4);
 }
 
+function getFilteredSentencePool() {
+  let pool = vocabularies.filter(v => v.example && v.example.trim().length > 4);
+  const filtered = pool.filter(v => {
+    const matchLevel = practiceFilterLevel === 'all' || v.level === practiceFilterLevel;
+    const matchTopic = practiceFilterTopic === 'all' || v.topic === practiceFilterTopic;
+    return matchLevel && matchTopic;
+  });
+  if (filtered.length) pool = filtered;
+  return pool;
+}
+
 function renderSentenceLearn() {
   const el = document.getElementById('sentencePanel');
   if (!el) { console.warn('[SL] sentencePanel not found'); return; }
   try {
-    const pool = getSentencePool();
+    const pool = getFilteredSentencePool();
     if (!pool.length) { el.innerHTML = '<p style="color:var(--muted);padding:20px">Chưa có câu ví dụ.</p>'; return; }
-    sentenceIdx = ((sentenceIdx % pool.length) + pool.length) % pool.length;
-    const item = pool[sentenceIdx];
+    const item = currentShuffledTask(pool, 'sentenceLearn');
     if (!item || !item.example) { console.warn('[SL] invalid item', item); return; }
 
     const words = item.example.split(/\s+/);
@@ -1709,7 +1804,7 @@ function renderSentenceLearn() {
 
     el.innerHTML = `
       <div class="sl-card">
-        <div class="sl-meta">${item.level || ''} · ${item.topic || ''} · <span style="color:var(--muted);font-size:0.78rem">${sentenceIdx+1}/${pool.length}</span></div>
+        <div class="sl-meta">${item.level || ''} · ${item.topic || ''} · <span style="color:var(--muted);font-size:0.78rem">${practiceShuffle.sentenceLearn.pos + 1}/${pool.length}</span></div>
         <div class="sl-meaning">💬 Nghĩa: <strong>${item.meaning || ''}</strong></div>
         <div class="sl-sentence" id="slSentence">${buildSentenceLineHtml(item, words, range)}</div>
         <div class="sl-choices" id="slChoices"></div>
@@ -1763,19 +1858,19 @@ function checkSentenceLearnPick(chosen, item) {
 }
 
 function nextSentenceLearn() {
-  const pool = getSentencePool();
-  sentenceIdx = (sentenceIdx + 1) % pool.length;
+  const pool = getFilteredSentencePool();
+  if (pool.length) advancePracticeShuffle('sentenceLearn', pool.length);
   renderSentenceLearn();
 }
 
 function slSpeak() {
-  const pool = getSentencePool();
-  const item = pool[sentenceIdx % pool.length];
+  const pool = getFilteredSentencePool();
+  const item = currentShuffledTask(pool, 'sentenceLearn');
   if (item) speak(item.example);
 }
 function slSpeakSlow() {
-  const pool = getSentencePool();
-  const item = pool[sentenceIdx % pool.length];
+  const pool = getFilteredSentencePool();
+  const item = currentShuffledTask(pool, 'sentenceLearn');
   if (item) speakSlow(item.example);
 }
 
@@ -1800,8 +1895,7 @@ function renderListening() {
     if (listeningAnswers) listeningAnswers.innerHTML = '<p style="text-align:center;padding:24px 0;color:var(--muted)">Chưa có bài nghe nào cho bộ lọc này.<br>Thử chọn chủ đề khác.</p>';
     return;
   }
-  activeListening = activeListening % tasks.length;
-  const task = tasks[activeListening];
+  const task = currentShuffledTask(tasks, 'listening');
   if (listeningMeta) listeningMeta.textContent = [task.level, task.topic].filter(Boolean).join(' · ');
   if (listeningFeedback) listeningFeedback.textContent = '';
   if (listeningAnswers) {
@@ -1850,7 +1944,7 @@ function renderSentenceBuilder() {
     answerEl.innerHTML = '<span class="answer-hint">Hãy thay đổi bộ lọc</span>';
     return;
   }
-  const task = tasks[activeSentence % tasks.length];
+  const task = currentShuffledTask(tasks, 'wordBuilder');
   if (metaEl) metaEl.textContent = `${task.level} · ${task.topic}`;
   if (promptEl) promptEl.textContent = task.vi;
   if (feedbackEl) feedbackEl.textContent = '';
@@ -1888,7 +1982,8 @@ function renderWordChips() {
 
 function checkSentenceAnswer() {
   const tasks = getFilteredSentenceTasks();
-  const task = tasks[activeSentence % tasks.length];
+  if (!tasks.length) return;
+  const task = currentShuffledTask(tasks, 'wordBuilder');
   const feedbackEl = document.getElementById('sentenceFeedback');
   if (!feedbackEl) return;
   const given = sentenceAnswerWords.map(w => w.word).join(' ').trim().toLowerCase().replace(/[!?.,]/g, '');
@@ -2326,30 +2421,36 @@ function setupSpeechRecognition(forceReset = false) {
     const text = event.results[0][0].transcript;
     recognitionHasResult = true;
     if (speechMode === 'speaking') {
-      const task = speakingTasks[activeSpeaking];
-      const normalizedText = normalizeFrenchText(text);
-      const normalizedExpected = normalizeFrenchText(task.expected);
-      const score = similarityScore(normalizedText, normalizedExpected);
-      speakingRecognized.textContent = `Bạn nói: ${text}`;
-      speakingFeedback.textContent = normalizedText === normalizedExpected || score >= 0.7
-        ? 'Bạn đã nói rất tốt!'
-        : `Bạn nói: ${text}. Câu đúng: ${task.expected}`;
-      speakingFeedback.style.color = score >= 0.7 ? '#22c55e' : '#ff6b6b';
-      recordDailyStat('speakingAttempt');
-      if (score >= 0.7) recordDailyStat('speakingCorrect');
-    } else if (speechMode === 'pronunciation') {
-      const task = pronunciationTasks[activePronunciation];
-      const normalizedText = normalizeFrenchText(text);
-      const normalizedExpected = normalizeFrenchText(task.phrase);
-      const score = similarityScore(normalizedText, normalizedExpected);
-      pronunciationRecognized.textContent = `Bạn nói: ${text}`;
-      pronunciationFeedback.textContent = getPronunciationAdvice(text, task.phrase);
-      pronunciationFeedback.style.color = score >= 0.7 ? '#22c55e' : '#ff6b6b';
-      if (score < 0.7) {
-        pronunciationFeedback.textContent += ' Hãy lặp lại và chú ý nhấn âm.';
+      const tasks = getFilteredPracticeTasks(speakingTasks);
+      const task = currentShuffledTask(tasks, 'speaking');
+      if (task) {
+        const normalizedText = normalizeFrenchText(text);
+        const normalizedExpected = normalizeFrenchText(task.expected);
+        const score = similarityScore(normalizedText, normalizedExpected);
+        speakingRecognized.textContent = `Bạn nói: ${text}`;
+        speakingFeedback.textContent = normalizedText === normalizedExpected || score >= 0.7
+          ? 'Bạn đã nói rất tốt!'
+          : `Bạn nói: ${text}. Câu đúng: ${task.expected}`;
+        speakingFeedback.style.color = score >= 0.7 ? '#22c55e' : '#ff6b6b';
+        recordDailyStat('speakingAttempt');
+        if (score >= 0.7) recordDailyStat('speakingCorrect');
       }
-      recordDailyStat('pronunciationAttempt');
-      if (score >= 0.7) recordDailyStat('pronunciationCorrect');
+    } else if (speechMode === 'pronunciation') {
+      const tasks = getFilteredPracticeTasks(pronunciationTasks);
+      const task = currentShuffledTask(tasks, 'pronunciation');
+      if (task) {
+        const normalizedText = normalizeFrenchText(text);
+        const normalizedExpected = normalizeFrenchText(task.phrase);
+        const score = similarityScore(normalizedText, normalizedExpected);
+        pronunciationRecognized.textContent = `Bạn nói: ${text}`;
+        pronunciationFeedback.textContent = getPronunciationAdvice(text, task.phrase);
+        pronunciationFeedback.style.color = score >= 0.7 ? '#22c55e' : '#ff6b6b';
+        if (score < 0.7) {
+          pronunciationFeedback.textContent += ' Hãy lặp lại và chú ý nhấn âm.';
+        }
+        recordDailyStat('pronunciationAttempt');
+        if (score >= 0.7) recordDailyStat('pronunciationCorrect');
+      }
     }
     isRecognizing = false;
   });
@@ -2436,11 +2537,43 @@ function speak(text, rate = 1.0) {
 
 function speakSlow(text) { speak(text, 0.55); }
 
+function voiceLooksMale(v) {
+  const n = `${v.name || ''} ${v.voiceURI || ''}`.toLowerCase();
+  return /\b(male|homme|daniel|nicolas|marc|thomas|antoine|julien|patrick|arnaud|philippe|vincent|olivier|michel|jacques|jean|henri|françois|francois|guillaume|benoit|benoît|remy|rémy|pierre|claude|serge|gerard|gérard|david)\b/.test(n)
+    || /microsoft[^a-z]*.*french.*male/i.test(n)
+    || /google[^a-z]*.*fr.*male/i.test(n);
+}
+
+function voiceLooksFemale(v) {
+  const n = `${v.name || ''} ${v.voiceURI || ''}`.toLowerCase();
+  return /\b(female|femme|hortense|julie|virginie|léa|lea|eloise|élodie|amélie|camille|audrey|claire|helene|isabelle|madeleine)\b/.test(n)
+    || /microsoft[^a-z]*.*french.*female/i.test(n)
+    || /google[^a-z]*.*fr.*female/i.test(n);
+}
+
+function filterFrenchVoicesByGender(voices) {
+  if (frenchVoiceGender === 'male') {
+    const male = voices.filter(voiceLooksMale);
+    return male.length ? male : voices;
+  }
+  if (frenchVoiceGender === 'female') {
+    const female = voices.filter(voiceLooksFemale);
+    return female.length ? female : voices;
+  }
+  return voices;
+}
+
+function getFrenchVoicesForUi() {
+  const all = speechSynthesis.getVoices().filter(v => v.lang.startsWith('fr'));
+  return filterFrenchVoicesByGender(all);
+}
+
 function populateVoiceSelect() {
   if (!voiceSelectEl) return;
-  const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('fr'));
+  const voices = getFrenchVoicesForUi();
   if (!voices.length) {
     voiceSelectEl.innerHTML = '<option value="">Không tìm thấy giọng tiếng Pháp</option>';
+    selectedVoice = null;
     return;
   }
   const saved = localStorage.getItem('frenchCoachVoice');
@@ -2449,6 +2582,7 @@ function populateVoiceSelect() {
   ).join('');
   const savedIdx = voices.findIndex(v => v.name === saved);
   selectedVoice = voices[savedIdx >= 0 ? savedIdx : 0];
+  if (voiceGenderSelectEl) voiceGenderSelectEl.value = frenchVoiceGender;
 }
 
 function getFilteredPracticeTasks(tasks) {
@@ -3276,6 +3410,7 @@ function createBackupPayload() {
       frenchCoachQuizSound: localStorage.getItem('frenchCoachQuizSound') || 'on',
       frenchCoachAccent: localStorage.getItem('frenchCoachAccent') || '',
       frenchCoachVoice: localStorage.getItem('frenchCoachVoice') || '',
+      frenchCoachVoiceGender: localStorage.getItem('frenchCoachVoiceGender') || 'any',
       frenchCoachUi: {
         selectedLevel,
         selectedTopic,
@@ -3386,6 +3521,10 @@ function applyBackupData(payload) {
   }
   if (typeof data.frenchCoachVoice === 'string' && data.frenchCoachVoice) {
     localStorage.setItem('frenchCoachVoice', data.frenchCoachVoice);
+  }
+  if (typeof data.frenchCoachVoiceGender === 'string' && ['any', 'male', 'female'].includes(data.frenchCoachVoiceGender)) {
+    localStorage.setItem('frenchCoachVoiceGender', data.frenchCoachVoiceGender);
+    frenchVoiceGender = data.frenchCoachVoiceGender;
   }
   if (data.frenchCoachUi && typeof data.frenchCoachUi === 'object') {
     selectedLevel = data.frenchCoachUi.selectedLevel || 'all';
@@ -3785,7 +3924,8 @@ startSpeaking.addEventListener('click', () => {
 });
 
 nextSpeaking.addEventListener('click', () => {
-  activeSpeaking = (activeSpeaking + 1) % getFilteredPracticeTasks(speakingTasks).length;
+  const tasks = getFilteredPracticeTasks(speakingTasks);
+  if (tasks.length) advancePracticeShuffle('speaking', tasks.length);
   renderSpeaking();
 });
 
@@ -3885,8 +4025,9 @@ if (shadowNextBtn) shadowNextBtn.addEventListener('click', () => {
 });
 
 playPronunciationPhrase.addEventListener('click', () => {
-  const task = getFilteredPracticeTasks(pronunciationTasks)[activePronunciation];
-  speak(task.phrase);
+  const tasks = getFilteredPracticeTasks(pronunciationTasks);
+  const task = currentShuffledTask(tasks, 'pronunciation');
+  if (task) speak(task.phrase);
 });
 
 startPronunciation.addEventListener('click', () => {
@@ -3899,7 +4040,8 @@ startPronunciation.addEventListener('click', () => {
 });
 
 nextPronunciation.addEventListener('click', () => {
-  activePronunciation = (activePronunciation + 1) % getFilteredPracticeTasks(pronunciationTasks).length;
+  const tasks = getFilteredPracticeTasks(pronunciationTasks);
+  if (tasks.length) advancePracticeShuffle('pronunciation', tasks.length);
   renderPronunciation();
 });
 
@@ -3909,13 +4051,9 @@ toggleDialogueTranslation.addEventListener('click', () => {
 });
 
 nextDialogue.addEventListener('click', () => {
-  const filteredDialogue = dialogueTasks.filter(t => {
-    const matchLevel = practiceFilterLevel === 'all' || t.level === practiceFilterLevel;
-    const matchTopic = practiceFilterTopic === 'all' || t.topic === practiceFilterTopic;
-    return matchLevel && matchTopic;
-  });
+  const filteredDialogue = getFilteredDialogueTasks();
   if (filteredDialogue.length) {
-    activeDialogue = (activeDialogue + 1) % filteredDialogue.length;
+    advancePracticeShuffle('dialogue', filteredDialogue.length);
     recordDailyStat('dialogueCount');
   }
   renderDialogue();
@@ -3931,7 +4069,8 @@ document.getElementById('clearSentence')?.addEventListener('click', () => {
 });
 
 document.getElementById('nextSentence')?.addEventListener('click', () => {
-  activeSentence = (activeSentence + 1) % Math.max(1, getFilteredSentenceTasks().length);
+  const tasks = getFilteredSentenceTasks();
+  if (tasks.length) advancePracticeShuffle('wordBuilder', tasks.length);
   renderSentenceBuilder();
 });
 
@@ -4038,7 +4177,13 @@ topicButtons.addEventListener('click', event => {
 
 checkAnswer.addEventListener('click', () => {
   const answer = practiceAnswer.value.trim();
-  const task = getFilteredPracticeTasks(practiceTasks)[activePractice];
+  const tasks = getFilteredPracticeTasks(practiceTasks);
+  const task = currentShuffledTask(tasks, 'translate');
+  if (!task) {
+    practiceFeedback.textContent = 'Không có bài cho bộ lọc này.';
+    practiceFeedback.style.color = '#ff6b6b';
+    return;
+  }
   if (!answer) {
     practiceFeedback.textContent = 'Hãy nhập câu bạn đã viết.';
     practiceFeedback.style.color = '#ff6b6b';
@@ -4057,7 +4202,8 @@ checkAnswer.addEventListener('click', () => {
 });
 
 nextPrompt.addEventListener('click', () => {
-  activePractice = (activePractice + 1) % getFilteredPracticeTasks(practiceTasks).length;
+  const tasks = getFilteredPracticeTasks(practiceTasks);
+  if (tasks.length) advancePracticeShuffle('translate', tasks.length);
   renderPractice();
 });
 
@@ -4150,26 +4296,24 @@ const nextListeningBtn = document.getElementById('nextListening');
 if (playListeningSentenceBtn) {
   playListeningSentenceBtn.addEventListener('click', () => {
     const tasks = getFilteredListeningTasks();
-    if (tasks.length) speak(tasks[activeListening % tasks.length].sentence);
+    const task = currentShuffledTask(tasks, 'listening');
+    if (task) speak(task.sentence);
   });
 }
 
 if (nextListeningBtn) {
   nextListeningBtn.addEventListener('click', () => {
     const tasks = getFilteredListeningTasks();
-    if (tasks.length) activeListening = (activeListening + 1) % tasks.length;
+    if (tasks.length) advancePracticeShuffle('listening', tasks.length);
     renderListening();
   });
 }
 
 speakDialogueLine.addEventListener('click', () => {
-  const filtered = dialogueTasks.filter(t => {
-    const matchLevel = practiceFilterLevel === 'all' || t.level === practiceFilterLevel;
-    const matchTopic = practiceFilterTopic === 'all' || t.topic === practiceFilterTopic;
-    return matchLevel && matchTopic;
-  });
-  const tasks = filtered.length ? filtered : dialogueTasks;
-  const task = tasks[activeDialogue % tasks.length];
+  let tasks = getFilteredDialogueTasks();
+  if (!tasks.length) tasks = dialogueTasks;
+  const task = currentShuffledTask(tasks, 'dialogue');
+  if (!task) return;
   const text = task.lines.map(line => line.fr).join(' ');
   speak(text);
 });
@@ -4253,38 +4397,50 @@ if (practiceLevelRow) {
     practiceLevelRow.querySelectorAll('[data-practice-level]').forEach(btn =>
       btn.classList.toggle('active', btn.dataset.practiceLevel === practiceFilterLevel)
     );
-    activePractice = 0; activeSpeaking = 0; activePronunciation = 0; activeDialogue = 0; activeListening = 0; activeSentence = 0;
+    resetPracticeShuffleAll();
     renderPractice(); renderSpeaking(); renderPronunciation(); renderDialogue(); renderListening(); renderWordGame();
+    renderSentenceLearn();
   });
 }
 
 if (practiceLevelFilter) {
   practiceLevelFilter.addEventListener('change', () => {
     practiceFilterLevel = practiceLevelFilter.value;
-    activePractice = 0; activeSpeaking = 0; activePronunciation = 0; activeDialogue = 0; activeListening = 0; activeSentence = 0;
+    resetPracticeShuffleAll();
     renderPractice(); renderSpeaking(); renderPronunciation(); renderDialogue(); renderListening(); renderWordGame();
+    renderSentenceLearn();
   });
 }
 
 if (practiceTopicFilter) {
   practiceTopicFilter.addEventListener('change', () => {
     practiceFilterTopic = practiceTopicFilter.value;
-    activePractice = 0; activeSpeaking = 0; activePronunciation = 0; activeDialogue = 0; activeListening = 0; activeSentence = 0;
+    resetPracticeShuffleAll();
     renderPractice(); renderSpeaking(); renderPronunciation(); renderDialogue(); renderListening(); renderWordGame();
+    renderSentenceLearn();
   });
 }
 
 if (practiceOrderFilter) {
   practiceOrderFilter.addEventListener('change', () => {
     practiceFilterOrder = practiceOrderFilter.value;
-    activePractice = 0; activeSpeaking = 0; activePronunciation = 0; activeDialogue = 0; activeListening = 0; activeSentence = 0;
+    resetPracticeShuffleAll();
     renderPractice(); renderSpeaking(); renderPronunciation(); renderDialogue(); renderListening(); renderWordGame();
+    renderSentenceLearn();
+  });
+}
+
+if (voiceGenderSelectEl) {
+  voiceGenderSelectEl.addEventListener('change', () => {
+    frenchVoiceGender = voiceGenderSelectEl.value || 'any';
+    localStorage.setItem('frenchCoachVoiceGender', frenchVoiceGender);
+    populateVoiceSelect();
   });
 }
 
 if (voiceSelectEl) {
   voiceSelectEl.addEventListener('change', () => {
-    const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('fr'));
+    const voices = getFrenchVoicesForUi();
     const idx = parseInt(voiceSelectEl.value, 10);
     selectedVoice = voices[idx] || null;
     if (selectedVoice) localStorage.setItem('frenchCoachVoice', selectedVoice.name);
