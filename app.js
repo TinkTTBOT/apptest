@@ -1763,11 +1763,13 @@ function renderListening() {
 }
 
 function getFilteredSentenceTasks() {
-  return sentenceTasks.filter(t => {
+  let list = sentenceTasks.filter(t => {
     const matchLevel = practiceFilterLevel === 'all' || t.level === practiceFilterLevel;
     const matchTopic = practiceFilterTopic === 'all' || t.topic === practiceFilterTopic;
     return matchLevel && matchTopic;
   });
+  if (!list.length) list = sentenceTasks;
+  return list;
 }
 
 function renderSentenceBuilder() {
@@ -3196,6 +3198,7 @@ function createBackupPayload() {
       ejsPublicKey: localStorage.getItem('ejsPublicKey') || '',
       ejsServiceId: localStorage.getItem('ejsServiceId') || '',
       ejsTemplateId: localStorage.getItem('ejsTemplateId') || '',
+      frenchGameScores: readStorage('frenchGameScores', []),
       frenchCoachUi: {
         selectedLevel,
         selectedTopic,
@@ -3289,6 +3292,9 @@ function applyBackupData(payload) {
   }
   initEmailJS();
 
+  if (Array.isArray(data.frenchGameScores)) {
+    localStorage.setItem('frenchGameScores', JSON.stringify(data.frenchGameScores));
+  }
   if (data.frenchCoachUi && typeof data.frenchCoachUi === 'object') {
     selectedLevel = data.frenchCoachUi.selectedLevel || 'all';
     selectedTopic = data.frenchCoachUi.selectedTopic || 'all';
@@ -3297,6 +3303,7 @@ function applyBackupData(payload) {
 
   loadFavorites();
   loadHistory();
+  loadLearnedWords();
   loadRoadmap();
   loadDailyGoal();
   renderTopicButtons();
@@ -3305,8 +3312,10 @@ function applyBackupData(payload) {
   renderHistory();
   renderRoadmap();
   renderDailyGoal();
+  renderEvaluation('daily');
   loadTheme();
   updateStats();
+  updateAiUI();
 
   levelButtons.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.level === selectedLevel);
@@ -4697,15 +4706,17 @@ async function getTopScoresCloud(game, n = 3) {
     try {
       const snap = await db.collection('gameScores')
         .where('game', '==', game)
+        .orderBy('score', 'desc')
+        .limit(n)
         .get();
-      const docs = snap.docs.map(d => d.data()).sort((a, b) => b.score - a.score);
-      return docs.slice(0, n);
+      return snap.docs.map(d => d.data());
     } catch(e) {
       console.warn('BXH cloud fetch failed:', e.message);
+      // fallback to localStorage if Firestore query fails
     }
   }
   const all = JSON.parse(localStorage.getItem('frenchGameScores') || '[]');
-  return all.filter(s => s.game === game).slice(0, n);
+  return all.filter(s => s.game === game).sort((a, b) => b.score - a.score).slice(0, n);
 }
 
 const GAME_LIST = [
