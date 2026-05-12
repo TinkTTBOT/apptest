@@ -1643,37 +1643,53 @@ function getSentencePool() {
 
 function renderSentenceLearn() {
   const el = document.getElementById('sentencePanel');
-  if (!el) return;
-  const pool = getSentencePool();
-  if (!pool.length) { el.innerHTML = '<p style="color:var(--muted)">Chưa có câu ví dụ.</p>'; return; }
-  sentenceIdx = sentenceIdx % pool.length;
-  const item = pool[sentenceIdx];
-  const words = item.example.split(/\s+/);
-  const blankIdx = words.findIndex(w => w.toLowerCase().includes(item.word.toLowerCase().replace(/['']/g, '')));
-  const displayWords = words.map((w, i) => i === blankIdx ? `<span class="sl-blank" id="slBlankSpan">_____</span>` : w);
+  if (!el) { console.warn('[SL] sentencePanel not found'); return; }
+  try {
+    const pool = getSentencePool();
+    if (!pool.length) { el.innerHTML = '<p style="color:var(--muted);padding:20px">Chưa có câu ví dụ.</p>'; return; }
+    sentenceIdx = ((sentenceIdx % pool.length) + pool.length) % pool.length;
+    const item = pool[sentenceIdx];
+    if (!item || !item.example) { console.warn('[SL] invalid item', item); return; }
 
-  const distractors = shuffleArray(vocabularies.filter(v => v.word !== item.word)).slice(0, 3).map(v => v.word);
-  sentenceOptions = shuffleArray([item.word, ...distractors]);
+    const words = item.example.split(/\s+/);
+    const itemWordNorm = item.word.toLowerCase().replace(/'/g, '');
+    let blankIdx = words.findIndex(w => w.toLowerCase().replace(/'/g, '') === itemWordNorm);
+    if (blankIdx === -1) {
+      blankIdx = words.findIndex(w => w.toLowerCase().includes(item.word.toLowerCase()));
+    }
+    const displayWords = words.map((w, i) => i === blankIdx ? `<span class="sl-blank" id="slBlankSpan">_____</span>` : w);
 
-  el.innerHTML = `
-    <div class="sl-card">
-      <div class="sl-meta">${item.level} · ${item.topic} · <span style="color:var(--muted);font-size:0.78rem">${sentenceIdx+1}/${pool.length}</span></div>
-      <div class="sl-meaning">💬 Nghĩa: <strong>${item.meaning}</strong></div>
-      <div class="sl-sentence" id="slSentence">${displayWords.join(' ')}</div>
-      <div class="sl-choices" id="slChoices">
-        ${sentenceOptions.map(w => `<button class="pill sl-choice" data-word="${w}">${w}</button>`).join('')}
-      </div>
-      <div class="sl-feedback" id="slFeedback"></div>
-      <div class="sl-actions">
-        <button class="pill secondary" onclick="slSpeak()">🔊 Nghe câu</button>
-        <button class="pill secondary" onclick="slSpeakSlow()">🐢 Chậm</button>
-        <button class="pill sl-next-btn" id="slNextBtn" style="display:none" onclick="nextSentence()">→ Câu tiếp</button>
-      </div>
-    </div>`;
+    const distractors = shuffleArray(vocabularies
+      .filter(v => v.word && v.word !== item.word)
+      .slice(0, 20))
+      .slice(0, 3)
+      .map(v => v.word)
+      .filter(Boolean);
+    sentenceOptions = shuffleArray([item.word, ...distractors]);
 
-  el.querySelectorAll('.sl-choice').forEach(btn => {
-    btn.addEventListener('click', () => checkSentenceAnswer(btn.dataset.word, item));
-  });
+    el.innerHTML = `
+      <div class="sl-card">
+        <div class="sl-meta">${item.level || ''} · ${item.topic || ''} · <span style="color:var(--muted);font-size:0.78rem">${sentenceIdx+1}/${pool.length}</span></div>
+        <div class="sl-meaning">💬 Nghĩa: <strong>${item.meaning || ''}</strong></div>
+        <div class="sl-sentence" id="slSentence">${displayWords.join(' ')}</div>
+        <div class="sl-choices" id="slChoices">
+          ${sentenceOptions.map(w => `<button class="pill sl-choice" data-word="${w.replace(/"/g, '&quot;')}">${w}</button>`).join('')}
+        </div>
+        <div class="sl-feedback" id="slFeedback"></div>
+        <div class="sl-actions">
+          <button class="pill secondary" onclick="slSpeak()">🔊 Nghe câu</button>
+          <button class="pill secondary" onclick="slSpeakSlow()">🐢 Chậm</button>
+          <button class="pill sl-next-btn" id="slNextBtn" style="display:none" onclick="nextSentence()">→ Câu tiếp</button>
+        </div>
+      </div>`;
+
+    el.querySelectorAll('.sl-choice').forEach(btn => {
+      btn.addEventListener('click', () => checkSentenceAnswer(btn.dataset.word, item));
+    });
+  } catch (err) {
+    console.error('[SL] renderSentenceLearn error:', err);
+    el.innerHTML = '<p style="color:#ef4444;padding:20px">Lỗi tải câu. Vui lòng thử lại.</p>';
+  }
 }
 
 function checkSentenceAnswer(chosen, item) {
