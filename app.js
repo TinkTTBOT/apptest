@@ -1393,7 +1393,7 @@ function srsDueCount() {
 
 /* ── Mistake Review ───────────────────────── */
 function mistakeLoad() { return readStorage('frenchCoachMistakes', {}); }
-function mistakeSave(d) { localStorage.setItem('frenchCoachMistakes', JSON.stringify(d)); }
+function mistakeSave(d) { localStorage.setItem('frenchCoachMistakes', JSON.stringify(d)); queueCloudSync(); }
 
 function mistakeAdd(word, meaning) {
   const d = mistakeLoad();
@@ -1637,6 +1637,51 @@ let sentenceIdx = 0;
 let sentencePhase = 'read'; // 'read' | 'quiz'
 let sentenceOptions = [];
 
+function slNormToken(w) {
+  return String(w || '').toLowerCase().replace(/[''′]/g, "'").replace(/[?.!,;:…]/g, '').trim();
+}
+
+function findPhraseTokenRange(words, phrase) {
+  const parts = String(phrase || '').trim().split(/\s+/).filter(Boolean).map(slNormToken);
+  if (!parts.length) return null;
+  for (let i = 0; i <= words.length - parts.length; i++) {
+    let ok = true;
+    for (let j = 0; j < parts.length; j++) {
+      const wt = slNormToken(words[i + j]);
+      const pt = parts[j];
+      if (wt === pt) continue;
+      const wtBare = wt.replace(/'/g, '');
+      const ptBare = pt.replace(/'/g, '');
+      if (wtBare === ptBare || wt.includes(pt) || pt.includes(wt)) continue;
+      ok = false;
+      break;
+    }
+    if (ok) return { start: i, len: parts.length };
+  }
+  return null;
+}
+
+function slEscapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function buildSentenceLineHtml(item, words, range) {
+  if (range && range.len > 0) {
+    const before = words.slice(0, range.start).join(' ');
+    const after = words.slice(range.start + range.len).join(' ');
+    const gapBefore = before ? ' ' : '';
+    const gapAfter = after ? ' ' : '';
+    return `${slEscapeHtml(before)}${gapBefore}<span class="sl-blank" id="slBlankSpan">_____</span>${gapAfter}${slEscapeHtml(after)}`;
+  }
+  return `${slEscapeHtml(item.example)} <span class="sl-hint" style="font-size:0.82rem;color:var(--muted)">(Chọn đáp án đúng bên dưới)</span>`;
+}
+
+function vocabAnswerMatches(chosen, word) {
+  const a = String(chosen || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const b = String(word || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  return a === b;
+}
+
 function getSentencePool() {
   return vocabularies.filter(v => v.example && v.example.trim().length > 4);
 }
@@ -1652,12 +1697,7 @@ function renderSentenceLearn() {
     if (!item || !item.example) { console.warn('[SL] invalid item', item); return; }
 
     const words = item.example.split(/\s+/);
-    const itemWordNorm = item.word.toLowerCase().replace(/'/g, '');
-    let blankIdx = words.findIndex(w => w.toLowerCase().replace(/'/g, '') === itemWordNorm);
-    if (blankIdx === -1) {
-      blankIdx = words.findIndex(w => w.toLowerCase().includes(item.word.toLowerCase()));
-    }
-    const displayWords = words.map((w, i) => i === blankIdx ? `<span class="sl-blank" id="slBlankSpan">_____</span>` : w);
+    const range = findPhraseTokenRange(words, item.word);
 
     const distractors = shuffleArray(vocabularies
       .filter(v => v.word && v.word !== item.word)
@@ -1671,35 +1711,43 @@ function renderSentenceLearn() {
       <div class="sl-card">
         <div class="sl-meta">${item.level || ''} · ${item.topic || ''} · <span style="color:var(--muted);font-size:0.78rem">${sentenceIdx+1}/${pool.length}</span></div>
         <div class="sl-meaning">💬 Nghĩa: <strong>${item.meaning || ''}</strong></div>
-        <div class="sl-sentence" id="slSentence">${displayWords.join(' ')}</div>
-        <div class="sl-choices" id="slChoices">
-          ${sentenceOptions.map(w => `<button class="pill sl-choice" data-word="${w.replace(/"/g, '&quot;')}">${w}</button>`).join('')}
-        </div>
+        <div class="sl-sentence" id="slSentence">${buildSentenceLineHtml(item, words, range)}</div>
+        <div class="sl-choices" id="slChoices"></div>
         <div class="sl-feedback" id="slFeedback"></div>
         <div class="sl-actions">
-          <button class="pill secondary" onclick="slSpeak()">🔊 Nghe câu</button>
-          <button class="pill secondary" onclick="slSpeakSlow()">🐢 Chậm</button>
-          <button class="pill sl-next-btn" id="slNextBtn" style="display:none" onclick="nextSentence()">→ Câu tiếp</button>
+          <button type="button" class="pill secondary" id="slSpeakBtn">🔊 Nghe câu</button>
+          <button type="button" class="pill secondary" id="slSpeakSlowBtn">🐢 Chậm</button>
+          <button type="button" class="pill sl-next-btn" id="slNextBtn" style="display:none">→ Câu tiếp</button>
         </div>
       </div>`;
 
-    el.querySelectorAll('.sl-choice').forEach(btn => {
-      btn.addEventListener('click', () => checkSentenceAnswer(btn.dataset.word, item));
+    const choicesEl = el.querySelector('#slChoices');
+    sentenceOptions.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pill sl-choice';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => checkSentenceLearnPick(opt, item));
+      choicesEl.appendChild(btn);
     });
+    el.querySelector('#slSpeakBtn')?.addEventListener('click', slSpeak);
+    el.querySelector('#slSpeakSlowBtn')?.addEventListener('click', slSpeakSlow);
+    el.querySelector('#slNextBtn')?.addEventListener('click', nextSentenceLearn);
   } catch (err) {
     console.error('[SL] renderSentenceLearn error:', err);
     el.innerHTML = '<p style="color:#ef4444;padding:20px">Lỗi tải câu. Vui lòng thử lại.</p>';
   }
 }
 
-function checkSentenceAnswer(chosen, item) {
-  const correct = chosen.toLowerCase() === item.word.toLowerCase();
+function checkSentenceLearnPick(chosen, item) {
+  const correct = vocabAnswerMatches(chosen, item.word);
   const feedback = document.getElementById('slFeedback');
   const blank = document.getElementById('slBlankSpan');
-  document.querySelectorAll('.sl-choice').forEach(b => {
+  const panel = document.getElementById('sentencePanel');
+  panel?.querySelectorAll('.sl-choice').forEach(b => {
     b.disabled = true;
-    if (b.dataset.word.toLowerCase() === item.word.toLowerCase()) b.classList.add('correct-answer');
-    else if (b.dataset.word === chosen && !correct) b.classList.add('wrong-answer');
+    if (vocabAnswerMatches(b.textContent, item.word)) b.classList.add('correct-answer');
+    else if (vocabAnswerMatches(b.textContent, chosen) && !correct) b.classList.add('wrong-answer');
   });
   if (blank) { blank.textContent = item.word; blank.style.color = correct ? '#22c55e' : '#ef4444'; blank.style.fontWeight = '700'; }
   if (feedback) {
@@ -1714,7 +1762,7 @@ function checkSentenceAnswer(chosen, item) {
   if (nextBtn) nextBtn.style.display = 'inline-flex';
 }
 
-function nextSentence() {
+function nextSentenceLearn() {
   const pool = getSentencePool();
   sentenceIdx = (sentenceIdx + 1) % pool.length;
   renderSentenceLearn();
@@ -2524,7 +2572,7 @@ function getCloudDocRef() {
 
 async function syncToCloudNow(options = {}) {
   const { manual = false } = options;
-  if (!firebaseReady || !currentUser || cloudSyncInProgress) return;
+  if (!firebaseReady || !currentUser || cloudSyncInProgress || suppressCloudSync) return;
   const ref = getCloudDocRef();
   if (!ref) return;
   cloudSyncInProgress = true;
@@ -2555,25 +2603,32 @@ function queueCloudSync() {
 
 async function pullCloudData() {
   if (!firebaseReady || !currentUser) return;
+  clearTimeout(cloudSyncDebounce);
+  cloudSyncDebounce = null;
+  suppressCloudSync = true;
   const ref = getCloudDocRef();
-  if (!ref) return;
+  if (!ref) {
+    suppressCloudSync = false;
+    updateAuthButtons();
+    return;
+  }
   try {
     const snap = await ref.get();
     if (!snap.exists) {
-      setAuthStatus('Dang nhap thanh cong. Chua co du lieu cloud, se tao khi ban hoc.');
+      setAuthStatus('Đăng nhập thành công. Chưa có dữ liệu trên cloud — tiến độ trên máy này sẽ được đẩy lên khi bạn học hoặc nhấn Đồng bộ.');
       updateAuthButtons();
       return;
     }
     const cloudPayload = snap.data();
-    suppressCloudSync = true;
     applyBackupData({ data: cloudPayload.data || {} });
+    setAuthStatus('Đã tải tiến độ từ cloud thành công.');
+  } catch (e) {
+    console.warn('pullCloudData', e);
+    setAuthStatus('Không tải được dữ liệu cloud. Kiểm tra mạng hoặc Firestore rules.', true);
+  } finally {
     suppressCloudSync = false;
-    setAuthStatus('Da tai tien do tu cloud thanh cong.');
-  } catch {
-    suppressCloudSync = false;
-    setAuthStatus('Khong tai du lieu cloud duoc. Vui long thu lai.', true);
+    updateAuthButtons();
   }
-  updateAuthButtons();
 }
 
 function initFirebaseSync() {
@@ -2598,17 +2653,20 @@ function initFirebaseSync() {
       currentUser = user || null;
       updateTopbarUser(user);
       if (currentUser) {
+        clearTimeout(cloudSyncDebounce);
+        cloudSyncDebounce = null;
         if (authEmail && currentUser.email) authEmail.value = currentUser.email;
         if (authPassword) authPassword.value = '';
         setAuthStatus(`Đã đăng nhập: ${getDisplayName(currentUser)}.`);
         updateAuthButtons();
-        reattributeGuestScores(currentUser);
         // Ghi tên ngay lập tức để admin thấy
         if (firebaseReady && db) {
           const ref = getCloudDocRef();
           if (ref) ref.set({ displayName: getDisplayName(currentUser), email: currentUser.email || '', updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
         }
         await pullCloudData();
+        reattributeGuestScores(currentUser);
+        queueCloudSync();
       } else {
         setAuthStatus('Chưa đăng nhập.');
         updateAuthButtons();
@@ -3215,6 +3273,9 @@ function createBackupPayload() {
       ejsServiceId: localStorage.getItem('ejsServiceId') || '',
       ejsTemplateId: localStorage.getItem('ejsTemplateId') || '',
       frenchGameScores: readStorage('frenchGameScores', []),
+      frenchCoachQuizSound: localStorage.getItem('frenchCoachQuizSound') || 'on',
+      frenchCoachAccent: localStorage.getItem('frenchCoachAccent') || '',
+      frenchCoachVoice: localStorage.getItem('frenchCoachVoice') || '',
       frenchCoachUi: {
         selectedLevel,
         selectedTopic,
@@ -3249,7 +3310,7 @@ function applyBackupData(payload) {
   }
   const { data } = payload;
 
-  if (data.frenchCoachStats) {
+  if (data.frenchCoachStats != null && typeof data.frenchCoachStats === 'object') {
     localStorage.setItem('frenchCoachStats', JSON.stringify(data.frenchCoachStats));
   }
   if (Array.isArray(data.frenchCoachFavorites)) {
@@ -3311,6 +3372,21 @@ function applyBackupData(payload) {
   if (Array.isArray(data.frenchGameScores)) {
     localStorage.setItem('frenchGameScores', JSON.stringify(data.frenchGameScores));
   }
+  if (typeof data.frenchCoachQuizSound === 'string') {
+    localStorage.setItem('frenchCoachQuizSound', data.frenchCoachQuizSound);
+    quizSoundEnabled = data.frenchCoachQuizSound !== 'off';
+    const quizSoundToggleBtnSync = document.getElementById('quizSoundToggle');
+    if (quizSoundToggleBtnSync) {
+      quizSoundToggleBtnSync.classList.toggle('toggle-on', quizSoundEnabled);
+      quizSoundToggleBtnSync.setAttribute('aria-checked', quizSoundEnabled);
+    }
+  }
+  if (typeof data.frenchCoachAccent === 'string' && data.frenchCoachAccent) {
+    localStorage.setItem('frenchCoachAccent', data.frenchCoachAccent);
+  }
+  if (typeof data.frenchCoachVoice === 'string' && data.frenchCoachVoice) {
+    localStorage.setItem('frenchCoachVoice', data.frenchCoachVoice);
+  }
   if (data.frenchCoachUi && typeof data.frenchCoachUi === 'object') {
     selectedLevel = data.frenchCoachUi.selectedLevel || 'all';
     selectedTopic = data.frenchCoachUi.selectedTopic || 'all';
@@ -3330,6 +3406,7 @@ function applyBackupData(payload) {
   renderDailyGoal();
   renderEvaluation('daily');
   loadTheme();
+  populateVoiceSelect();
   updateStats();
   updateAiUI();
 
@@ -4722,13 +4799,12 @@ async function getTopScoresCloud(game, n = 3) {
     try {
       const snap = await db.collection('gameScores')
         .where('game', '==', game)
-        .orderBy('score', 'desc')
-        .limit(n)
+        .limit(80)
         .get();
-      return snap.docs.map(d => d.data());
+      const rows = snap.docs.map(d => d.data()).sort((a, b) => (b.score || 0) - (a.score || 0));
+      return rows.slice(0, n);
     } catch(e) {
       console.warn('BXH cloud fetch failed:', e.message);
-      // fallback to localStorage if Firestore query fails
     }
   }
   const all = JSON.parse(localStorage.getItem('frenchGameScores') || '[]');
